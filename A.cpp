@@ -1,20 +1,22 @@
-#include<iostream>
+#include <iostream>
 
+template <typename Tnode>
 class List {
 private:
+    template <typename Tvalue>
     struct Node {
-        int value;
+        Tvalue value;
         Node *R;
-        Node(int v = 0, Node *R = nullptr) : value(v), R(R) {}
+        Node(Tvalue v = Tvalue(), Node *R = nullptr) : value(v), R(R) {}
     };
     std::size_t len;
 
 public:
     struct list_iterator {
-        Node *elem;
-        list_iterator(Node *elem = nullptr) : elem(elem) {}
+        Node<Tnode> *elem;
+        list_iterator(Node<Tnode> *elem = nullptr) : elem(elem) {}
 
-        int &operator*() {
+        Tnode &operator*() {
             return elem->value;
         }
         list_iterator &operator++() {
@@ -37,19 +39,19 @@ public:
     List() : first(new Node()), len(0) {
         last = first;
     }
-    list_iterator begin() {
+    list_iterator begin() const {
         return first;
     }
-    list_iterator end() {
+    list_iterator end() const {
         return last;
     }
-    std::size_t size() {
+    std::size_t size() const {
         return len;
     }
 
     void push_back(int x) {
         last->value = x;
-        Node *elem = new Node(0);
+        Node *elem = new Node();
         last->R = elem;
         ++last;
         ++len;
@@ -57,9 +59,9 @@ public:
     ~List() {
         while (first != last) {
             list_iterator tmp = first++;
-            delete (tmp.elem);
+            delete tmp.elem;
         }
-        delete (last.elem);
+        delete last.elem;
     }
 };
 
