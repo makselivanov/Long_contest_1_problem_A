@@ -28,21 +28,24 @@ public:
             elem = elem->R;
             return tmp;
         }
-        Node *operator->() {
+        Node<Tnode> *operator->() {
             return elem;
         }
         bool operator!=(const list_iterator &other) const {
             return elem != other.elem;
         }
+        bool operator==(const list_iterator &other) const {
+            return elem == other.elem;
+        }
     };
     list_iterator first, last;
-    List() : first(new Node()), len(0) {
+    List() : first(new Node<Tnode>()), len(0) {
         last = first;
     }
-    list_iterator begin() const {
+    List<Tnode>::list_iterator begin() const {
         return first;
     }
-    list_iterator end() const {
+    List<Tnode>::list_iterator end() const {
         return last;
     }
     std::size_t size() const {
@@ -51,13 +54,13 @@ public:
 
     void push_back(int x) {
         last->value = x;
-        Node *elem = new Node();
+        Node<Tnode> *elem = new Node<Tnode>();
         last->R = elem;
         ++last;
         ++len;
     }
     ~List() {
-        while (first != last) {
+        while (first != nullptr) {
             list_iterator tmp = first++;
             delete tmp.elem;
         }
@@ -65,48 +68,59 @@ public:
     }
 };
 
-void merge_sort(List::list_iterator L, List::list_iterator R, int len) {
-    if (len == 1)
-        return;
-    int cnt = len / 2;
+template <typename Iter>
+Iter merge(Iter a, Iter b) {
+    if (a == Iter(nullptr))
+        return b;
+    if (b == Iter(nullptr))
+        return a;
+    if (*a < *b) {
+        a->R = merge(Iter(a->R), b).elem;
+        return a;
+    }
+    b->R = merge(a, Iter(b->R)).elem;
+    return b;
+}
+
+template <typename Iter>
+Iter _merge_sort(Iter L, Iter R, int len) {
+    if (len == 1) {
+        L->R = nullptr;
+        return L;
+    }
     auto M = L;
-    for (int i = 0; i < cnt - 1; ++i)
+    for (int i = 0; i < len / 2; ++i)
         ++M;
-    merge_sort(L, M, cnt);
-    merge_sort(M->R, R, len - cnt);
-    int vec[len];
-    int indL = 0, indR = 0;
-    List::list_iterator LL = L, RR = M->R;
-    while (indL < cnt || indR < len - cnt) {
-        if (indR == len - cnt || (indL < cnt && *LL < *RR)) {
-            vec[indL + indR] = *LL;
-            ++LL;
-            ++indL;
-        } else {
-            vec[indL + indR] = *RR;
-            ++RR;
-            ++indR;
-        }
+    Iter a = _merge_sort(L, M, len / 2);
+    Iter b = _merge_sort(M, R, (len + 1) / 2);
+    return merge(a, b);
+}
+
+template <typename Iter>
+Iter merge_sort(const Iter& s, const Iter& f) {
+    int len = 0;
+    Iter a = s;
+    while (a != f) {
+        ++a;
+        ++len;
     }
-    M = L;
-    for (int i = 0; i < len; ++i, ++M) {
-        *M = vec[i];
-    }
+    return _merge_sort(s, f, len);
 }
 
 int main() {
     int n;
     std::cin >> n;
-    List lst;
+    List<int> lst;
     for (int i = 0; i < n; ++i) {
         int a;
         std::cin >> a;
         lst.push_back(a);
     }
-    merge_sort(lst.begin(), lst.end(), n);
-    auto ind = lst.begin();
-    while (ind != lst.end()) {
+    auto ind = merge_sort(lst.begin(), lst.end());
+    lst.first = ind;
+    while (ind.elem != nullptr) {
         std::cout << ind->value << ' ';
         ++ind;
     }
+    return 0;
 }
