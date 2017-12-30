@@ -70,16 +70,27 @@ public:
 
 template <typename Iter>
 Iter merge(Iter a, Iter b) {
-    if (a == Iter(nullptr))
-        return b;
-    if (b == Iter(nullptr))
-        return a;
-    if (*a < *b) {
-        a->R = merge(Iter(a->R), b).elem;
-        return a;
+    Iter st = nullptr, pref = nullptr;
+    while (a != nullptr || b != nullptr) {
+        if (b == nullptr || (a != nullptr && *a < *b)) {
+            if (st == nullptr) {
+                st = a;
+            } else {
+                pref->R = a.elem;
+            }
+            pref = a;
+            ++a;
+        } else {
+            if (st == nullptr) {
+                st = b;
+            } else {
+                pref->R = b.elem;
+            }
+            pref = b;
+            ++b;
+        }
     }
-    b->R = merge(a, Iter(b->R)).elem;
-    return b;
+    return st;
 }
 
 template <typename Iter>
